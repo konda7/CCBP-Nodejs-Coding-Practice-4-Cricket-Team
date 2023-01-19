@@ -27,6 +27,15 @@ const initializeDbAndServer = async () => {
 
 initializeDbAndServer();
 
+const convertDbObjectToResponseObject = (dbObject) => {
+  return {
+    playerId: dbObject.player_id,
+    playerName: dbObject.player_name,
+    jerseyNumber: dbObject.jersey_number,
+    role: dbObject.role,
+  };
+};
+
 // API-1 Getting all Players
 app.get("/players/", async (request, response) => {
   //Processing the request
@@ -37,29 +46,34 @@ app.get("/players/", async (request, response) => {
   //Executing Query on database
   const playersArray = await db.all(getAllPlayersQuery);
   //Sending Response
-  response.send(playersArray);
+  response.send(
+    playersArray.map((eachPlayer) =>
+      convertDbObjectToResponseObject(eachPlayer)
+    )
+  );
 });
 
 //API-2 Creating a New Player
 app.post("/players/", async (request, response) => {
   const playerDetails = request.body;
-  const { playerName, jersey_number, role } = playerDetails;
+  const { player_name, jersey_number, role } = playerDetails;
   const addPlayerQuery = `
-        INSERT INTO
-        cricket_team (playerName,jersey_number,role)
-    VALUES
-      (
-       ' ${playerName}',
-        ${jersey_number},
-        '${role}'
-      );`;
+          INSERT INTO
+          cricket_team (player_name,jersey_number,role)
+      VALUES
+        (
+         ' ${player_name}',
+          ${jersey_number},
+          '${role}'
+        );`;
   await db.run(addPlayerQuery);
   response.send("Player Added to Team");
 });
 
 //API-3 get a player
 app.get("/players/:playerId/", async (request, response) => {
-  const { playerId } = request.params;
+  let { playerId } = request.params;
+  playerId = playerId.slice(1);
   const getPlayerQuery = `
         SELECT
       *
@@ -68,7 +82,7 @@ app.get("/players/:playerId/", async (request, response) => {
     WHERE
       player_id=${playerId};`;
   const player = await db.get(getPlayerQuery);
-  response.send(player);
+  response.send(convertDbObjectToResponseObject(player));
 });
 
 //API-4 update player details
