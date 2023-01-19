@@ -89,14 +89,16 @@ app.get("/players/:playerId/", async (request, response) => {
 app.put("/players/:playerId/", async (request, response) => {
   const { playerId } = request.params;
   const playerDetails = request.body;
-  const { playerName, jersey_number, role } = playerDetails;
+  const { playerName, jerseyNumber, role } = playerDetails;
   const updatePlayerDetails = `
-    UPDATE
-      cricket_team
-    SET
-      playerName='${playerName}',
-      jersey_number=${jersey_number},
-      role='${role}'};`;
+      UPDATE
+        cricket_team
+      SET
+        player_name='${playerName}',
+        jersey_number=${jerseyNumber},
+        role='${role}';
+      WHERE
+        player_id=${playerId}`;
   await db.run(updatePlayerDetails);
   response.send("Player Details Updated");
 });
